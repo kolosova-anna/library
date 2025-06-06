@@ -1,4 +1,5 @@
 import sqlite3
+from core import Book, Author, Genre, Books, Authors, Genres
 
 class Infrastructure():
     # содержит методы для хранения и обработки данных

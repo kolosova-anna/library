@@ -1,7 +1,7 @@
 from core_interfaces import BooksLib, AuthorsLib, GenresLib
 from core_realizations import LibRepository
 
-class Interface():
+class LibInterface():
     def __init__(self, lib_repo: LibRepository):
         self.library = lib_repo
 

@@ -2,8 +2,8 @@ from core_interfaces import BooksLib, AuthorsLib, GenresLib
 from core_realizations import LibRepository
 
 class Interface():
-    def __init__(self):
-        self.library = LibRepository(BooksLib)
+    def __init__(self, lib_repo: LibRepository):
+        self.library = lib_repo
 
     def check_input(self) -> int:
     # проверка введенного пользователем числа
@@ -55,8 +55,6 @@ class Interface():
          
     def run(self) -> None:
     # выводит меню пользователю и вызывает соответствующие функции ядра и инфраструктуры
-        lib = BooksLib()
-        methods = LibRepository(lib)
         print("Добро пожаловать в библиотеку!")
         print("Выберите нужный раздел меню:")
         print("1. Показать список всех книги")

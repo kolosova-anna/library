@@ -8,7 +8,7 @@ class Book():
     title: str
     author_id: int
     genre_id: int
-    is_availiable: bool = True
+    is_read: bool = False
 
 @dataclass
 class Author():
@@ -22,44 +22,49 @@ class Genre():
     genre_id: int
     name_genre: str
 
-class Books(ABC):
+class BooksLib(ABC):
     # интерфейс для работы с книгами
     
     @abstractmethod
-    def get_books(self) -> dict[int, Book]:
+    def get_books(self) -> list[Book]:
         pass
 
     @abstractmethod
-    def add_book(self, book: Book) -> Book:
+    def add_book(self, title: str, author_id: int, genre_id: int) -> Book:
         pass
 
     @abstractmethod
-    def change_is_availiable(self, book_id: int) -> None:
+    def mark_as_read(self, book_id: int) -> None:
         pass
 
+    @abstractmethod
+    def find_books(self, title: str | None = None, author: str | None = None, genre: str | None = None) -> list[Book]:
+        pass
+    
 
-class Authors(ABC):
+class AuthorsLib(ABC):
     # интерфейс для работы с авторами
 
     @abstractmethod
-    def get_authors(self) -> dict[int, Author]:
+    def add_author(self, name_author: Author) -> Author:
         pass
 
     @abstractmethod
-    def add_author(self, name_author: str) -> Author:
+    def get_authors(self) -> list[Author]:
         pass
 
 
-class Genres(ABC):
+class GenresLib(ABC):
     # интерфейс для работы с жанрами
 
     @abstractmethod
-    def get_genres(self) -> dict[int, Genre]:
-        pass
-    
-    @abstractmethod
-    def add_genre(self, name_genre: str) -> Genre:
+    def add_genre(self, name_genre: Genre) -> Genre:
         pass
 
+    @abstractmethod
+    def get_genres(self) -> list[Genre]:
+        pass
+    
+    
 
 

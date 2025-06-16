@@ -15,12 +15,12 @@ class DBConnectMethods():
         self.conn.commit()
         self.conn.close()
 
-    def execute_get_data(self, query: str, *args) -> tuple:
+    def execute_get_data(self, query: str, *args) -> list:
     # подключение к БД, выполнение запроса и возвращение результата запроса
         self.conn = sqlite3.connect(self.db)
         self.cursor = self.conn.cursor()
         self.cursor.execute(query, args)
-        result: tuple = self.cursor.fetchall()
+        result: list = self.cursor.fetchall()
         self.conn.close()
         return result
     
@@ -56,7 +56,7 @@ class AuthorsRepo(DBConnectMethods, AuthorsLib):
     def get_authors(self) -> list[Author]:
     # получение списка всех авторах
         query: str = " SELECT * FROM authors "
-        authors: tuple = self.execute_get_data(query)
+        authors: list = self.execute_get_data(query)
         authors_list: list = [Author(*row) for row in authors]
         return authors_list
 
@@ -84,7 +84,7 @@ class GenresRepo(DBConnectMethods, GenresLib):
     def get_genres(self) -> list[Genre]:
     # получение списка всех авторах
         query: str = " SELECT * FROM genres "
-        genres: tuple = self.execute_get_data(query)
+        genres: list = self.execute_get_data(query)
         genres_list: list = [Genre(*row) for row in genres]
         return genres_list
 
@@ -123,7 +123,7 @@ class BooksRepo(DBConnectMethods, BooksLib):
             JOIN authors a ON b.author_id = a.author_id
             JOIN genres g ON b.genre_id = g.genre_id
         '''
-        books: tuple = self.execute_get_data(query)
+        books: list = self.execute_get_data(query)
         books_list: list = [Book(*row) for row in books]
         return books_list
     
@@ -153,7 +153,7 @@ class BooksRepo(DBConnectMethods, BooksLib):
             elif k == "name_genre":
                 query += " WHERE name_genre LIKE ?" + f"%{v}%"
 
-        books: tuple = self.execute_get_data(query)
+        books: list = self.execute_get_data(query)
         books_list: list = [Book(*row) for row in books]
         return books_list
     

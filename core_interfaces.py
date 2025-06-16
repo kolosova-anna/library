@@ -34,11 +34,11 @@ class BooksLib(ABC):
         pass
 
     @abstractmethod
-    def mark_as_read(self, book_id: int) -> None:
+    def mark_as_read(self, book_id: int) -> Book:
         pass
 
     @abstractmethod
-    def find_books(self, title: str | None = None, author: str | None = None, genre: str | None = None) -> list[Book]:
+    def find_books(self, **filters) -> list[Book]:
         pass
     
 

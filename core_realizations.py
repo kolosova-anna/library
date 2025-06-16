@@ -16,13 +16,13 @@ class LibRepository(BooksLib):
     # добавление новой книги
         return self.books_lib.add_book(title, author_id, genre_id)
 
-    def mark_as_read(self, book_id: int) -> None:
+    def mark_as_read(self, book_id: int) -> Book:
     # отметка книги как прочитанной
         return self.books_lib.mark_as_read(book_id)
     
-    def find_books(self, title: str | None = None, author: str | None = None, genre: str | None = None) -> list[Book]:
+    def find_books(self, **filters) -> list[Book]:
     # поиск книг по названию ,автору или жанру
-        return super().find_books(title, author, genre)
+        return self.books_lib.find_books(**filters)
     
 # методы для работы с авторами
     def add_author(self, name_author: Author) -> Author:

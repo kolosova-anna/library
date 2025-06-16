@@ -1,85 +1,101 @@
 import sqlite3
 from core_interfaces import Book, Author, Genre, BooksLib, AuthorsLib, GenresLib
 
-class AuthorsRepo(AuthorsLib):
-# содержит методы для хранения и обработки данных об авторах
+class DBConnectMethods():
+# содержит метода для подключения к БД и передачи запроса
 
     def __init__(self, db: str):
-    # иниуциализация БД и создание таблицы с авторами
         self.db = db
+        
+    def execute_query(self, query: str, *args) -> None:
+    # подключение к БД, выполнение запроса и отключение
         self.conn = sqlite3.connect(self.db)
         self.cursor = self.conn.cursor()
-        self.cursor.execute('''
+        self.cursor.execute(query, args)
+        self.conn.commit()
+        self.conn.close()
+
+    def execute_get_data(self, query: str, *args) -> tuple:
+    # подключение к БД, выполнение запроса и возвращение результата запроса
+        self.conn = sqlite3.connect(self.db)
+        self.cursor = self.conn.cursor()
+        self.cursor.execute(query, args)
+        result: tuple = self.cursor.fetchall()
+        self.conn.close()
+        return result
+    
+    def get_id(self, query: str, *args) -> int:
+    # подключение к БД, выполнение запроса и возвращение результата запроса
+        self.conn = sqlite3.connect(self.db)
+        self.cursor = self.conn.cursor()
+        self.cursor.execute(query, args)
+        result: int = self.cursor.fetchone()
+        self.conn.close()
+        return result
+
+class AuthorsRepo(DBConnectMethods, AuthorsLib):
+# содержит методы для хранения и обработки данных об авторах
+
+    def __init__(self,):
+    # иниуциализация БД и создание таблицы с авторами
+        query: str = '''
             CREATE TABLE IF NOT EXISTS authors (
                     author_id INTEGER PRIMARY KEY AUTOINCREMENT,
                     name_author TEXT UNIQUE
                     )
-        ''')
-        self.conn.commit()
-        self.conn.close()
+        '''
+        self.execute_query(query)
 
     def add_author(self, name_author: Author) -> Author:
     #добавление автора в таблицу authors
-        self.conn = sqlite3.connect(self.db)
-        self.cursor = self.conn.cursor()
-        self.cursor.execute(" INSERT INTO authors (name_author) VALUES (?)", (name_author.name_author,))
-        self.conn.commit()
-        self.conn.close()
-        return name_author
+        query: str = " INSERT INTO authors (name_author) VALUES (?) "
+        self.execute_query(query, name_author.name_author)
+        author_id: int = self.get_id(" SELECT last_insert_rowid() FROM authors")
+        return Author(author_id, name_author.name_author)
 
     def get_authors(self) -> list[Author]:
     # получение списка всех авторах
-        self.conn = sqlite3.connect(self.db)
-        self.cursor = self.conn.cursor()
-        self.cursor.execute(" SELECT * FROM authors ")
-        authors = self.cursor.fetchall()
-        return authors
+        query: str = " SELECT * FROM authors "
+        authors: tuple = self.execute_get_data(query)
+        authors_list: list = [Author(*row) for row in authors]
+        return authors_list
 
-class GenresRepo(GenresLib):
+class GenresRepo(DBConnectMethods, GenresLib):
 # содержит методы для хранения и обработки данных о жанрах
 
-    def __init__(self, db: str):
+    def __init__(self):
     # иниуциализация БД и создание таблицы с жанрами
-        self.db = db
-        self.conn = sqlite3.connect(self.db)
-        self.cursor = self.conn.cursor()
-        self.cursor.execute('''
+        query: str = '''
             CREATE TABLE IF NOT EXISTS genres (
                     genre_id INTEGER PRIMARY KEY AUTOINCREMENT,
                     name_genre TEXT UNIQUE
                     )
-        ''')
-        self.conn.commit()
-        self.conn.close()
+        '''
+        self.execute_query(query)
+
 
     def add_genre(self, name_genre: Genre) -> Genre:
     #добавление жанра в таблицу genres
-        self.conn = sqlite3.connect(self.db)
-        self.cursor = self.conn.cursor()
-        self.cursor.execute(" INSERT INTO authors (name_genre) VALUES (?)", (name_genre.name_genre,))
-        self.conn.commit()
-        self.conn.close()
-        return name_genre
+        query: str = " INSERT INTO authors (name_genre) VALUES (?)"
+        self.execute_query(query, name_genre.name_genre)
+        genre_id: int = self.get_id(" SELECT last_insert_rowid() FROM genres")
+        return Genre(genre_id, name_genre.name_genre)
 
-    def get_authors(self) -> list[Author]:
-    # получение списка всех жанров
-        self.conn = sqlite3.connect(self.db)
-        self.cursor = self.conn.cursor()
-        self.cursor.execute(" SELECT * FROM genres ")
-        genres = self.cursor.fetchall()
-        return genres
+    def get_genres(self) -> list[Genre]:
+    # получение списка всех авторах
+        query: str = " SELECT * FROM genres "
+        genres: tuple = self.execute_get_data(query)
+        genres_list: list = [Genre(*row) for row in genres]
+        return genres_list
 
 
 
-class BooksRepo(BooksLib):
+class BooksRepo(DBConnectMethods, BooksLib):
 # содержит методы для хранения и обработки данных о книгах
    
-    def __init__(self, db: str):
+    def __init__(self):
     # иниуциализация БД и создание таблицы с книгами
-        self.db = db
-        self.conn = sqlite3.connect(self.db)
-        self.cursor = self.conn.cursor()
-        self.cursor.execute('''
+        query: str = '''
             CREATE TABLE IF NOT EXISTS books (
                     book_id INTEGER PRIMARY KEY AUTOINCREMENT,
                     title TEXT,
@@ -89,16 +105,55 @@ class BooksRepo(BooksLib):
                     FOREIGN KEY (author_id) REFERENCES authors(author_id),
                     FOREIGN KEY (genre_id) REFERENCES genres(genre_id)
                     )
-        ''')
-        self.conn.commit()
-        self.conn.close()
+        '''
+        self.execute_query(query)
     
     def add_book(self, title: str, author_id: int, genre_id: int) -> Book:
     #добавление книги в таблицу books
-        self.conn = sqlite3.connect(self.db)
-        self.cursor = self.conn.cursor()
-        self.cursor.execute(" INSERT INTO authors (name_genre) VALUES (?, ?, ?)", (title, author_id, genre_id))
-        self.cursor.execute(" SELECT book_id WHERE ")
-        self.conn.commit()
-        self.conn.close()
-        return Book(book_id, )   
+        query: str = " INSERT INTO books (name_genre) VALUES (?, ?, ?)"
+        self.execute_query(query, title, author_id, genre_id)
+        book_id: int = self.get_id(" SELECT last_insert_rowid() FROM books")
+        return Book(book_id, title, author_id, genre_id)
+    
+    def get_books(self) -> list[Book]:
+    # получение списка всех книг
+        query: str = '''
+            SELECT b.book_id, b.title, a.author_id, a.name, g.genre_id, g.name, b.is_read
+            FROM books b
+            JOIN authors a ON b.author_id = a.author_id
+            JOIN genres g ON b.genre_id = g.genre_id
+        '''
+        books: tuple = self.execute_get_data(query)
+        books_list: list = [Book(*row) for row in books]
+        return books_list
+    
+    def mark_as_read(self, book_id: int) -> Book:
+    # отметка книги как прочитанной
+        query: str = " UPDATE books SET is_read = 1 WHERE book_id = ? "
+        self.execute_query(query, book_id)
+        res = self.execute_get_data(" SELECT * FROM books WHERE book_id = ? ", book_id)
+        book_l: list = [Book(*row) for row in res]
+        book: Book = book_l[0]
+        return book
+    
+    def find_books(self, **filters) -> list[Book]:
+    # поиск книг по названию, автору или жанру
+        query: str = '''
+            SELECT book_id, title, a.author_id, name_author, g.genre_id, name_genre, is_read
+            FROM books b
+            JOIN authors a ON b.author_id = a.author_id
+            JOIN genres g ON b.genre_id = g.genre_id
+        '''
+
+        for k, v in filters.items():
+            if k == "title":
+                query += " WHERE title LIKE ?" + f"%{v}%"
+            elif k == "name_author":
+                query += " WHERE name_author LIKE ?" + f"%{v}%"
+            elif k == "name_genre":
+                query += " WHERE name_genre LIKE ?" + f"%{v}%"
+
+        books: tuple = self.execute_get_data(query)
+        books_list: list = [Book(*row) for row in books]
+        return books_list
+    

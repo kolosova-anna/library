@@ -38,7 +38,7 @@ class BooksLib(ABC):
 # интерфейс для работы с книгами
     
     @abstractmethod
-    def get_books(self) -> list[Book]:
+    def get_books(self) -> list[BookInfo]:
         pass
 
     @abstractmethod

@@ -158,7 +158,7 @@ class BooksRepo(DBConnectMethods, BooksLib):
         book: BookInfo = books[0]
         return book
     
-    def get_books(self) -> list:
+    def get_books(self) -> list[BookInfo]:
     # получение списка всех книг
         query: str = '''
             SELECT book_id, title,
@@ -170,7 +170,7 @@ class BooksRepo(DBConnectMethods, BooksLib):
             JOIN genres g ON b.genre_id = g.genre_id
         '''
         books: list = self.execute_get_data(query)
-        books_list: list = [BookInfo(*row) for row in books]
+        books_list: list[BookInfo] = [BookInfo(*row) for row in books]
         return books_list
     
     def mark_as_read(self, book_id: int) -> Book:

@@ -55,7 +55,7 @@ class AuthorsRepo(DBConnectMethods, AuthorsLib):
 
     def get_authors(self) -> list[Author]:
     # получение списка всех авторах
-        query: str = " SELECT * FROM authors "
+        query: str = " SELECT author_id, name_author FROM authors "
         authors: list = self.execute_get_data(query)
         authors_list: list = [Author(*row) for row in authors]
         return authors_list
@@ -83,7 +83,7 @@ class GenresRepo(DBConnectMethods, GenresLib):
 
     def get_genres(self) -> list[Genre]:
     # получение списка всех авторах
-        query: str = " SELECT * FROM genres "
+        query: str = " SELECT genre_id, name_genre FROM genres "
         genres: list = self.execute_get_data(query)
         genres_list: list = [Genre(*row) for row in genres]
         return genres_list
@@ -118,13 +118,16 @@ class BooksRepo(DBConnectMethods, BooksLib):
     def get_books(self) -> list[Book]:
     # получение списка всех книг
         query: str = '''
-            SELECT b.book_id, b.title, a.author_id, a.name, g.genre_id, g.name, b.is_read
+            SELECT book_id, title,
+            a.author_id, name_author AS author,
+            g.genre_id, g.name_genre AS genre,
+            is_read
             FROM books b
             JOIN authors a ON b.author_id = a.author_id
             JOIN genres g ON b.genre_id = g.genre_id
         '''
         books: list = self.execute_get_data(query)
-        books_list: list = [Book(*row) for row in books]
+        books_list: list[Book] = [Book(*row) for row in books]
         return books_list
     
     def mark_as_read(self, book_id: int) -> Book:
@@ -143,17 +146,20 @@ class BooksRepo(DBConnectMethods, BooksLib):
             FROM books b
             JOIN authors a ON b.author_id = a.author_id
             JOIN genres g ON b.genre_id = g.genre_id
+            WHERE
         '''
+        key = next(iter(filters))
+        value = filters[key]
+        if key == "title":
+            query += " title LIKE ?"
+        elif key == "name_author":
+            query += " name_author LIKE ?"
+        elif key == "name_genre":
+            query += " name_genre LIKE ?"
+        
+        param = f"%{value}%"
 
-        for k, v in filters.items():
-            if k == "title":
-                query += " WHERE title LIKE ?" + f"%{v}%"
-            elif k == "name_author":
-                query += " WHERE name_author LIKE ?" + f"%{v}%"
-            elif k == "name_genre":
-                query += " WHERE name_genre LIKE ?" + f"%{v}%"
-
-        books: list = self.execute_get_data(query)
-        books_list: list = [Book(*row) for row in books]
+        books: list = self.execute_get_data(query, param)
+        books_list: list[Book] = [Book(*row) for row in books]
         return books_list
     

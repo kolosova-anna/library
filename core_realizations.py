@@ -1,4 +1,4 @@
-from core_interfaces import Book, Author, Genre, BooksLib, AuthorsLib, GenresLib
+from core_interfaces import Book, Author, Genre, BookInfo, BooksLib, AuthorsLib, GenresLib
 
 class LibRepository(BooksLib):
     # реализация методов для работы с книгами
@@ -8,11 +8,11 @@ class LibRepository(BooksLib):
         self.genres_lib = genres_lib
 
 # методы для работы с книгами
-    def get_books(self) -> list[Book]:
+    def get_books(self) -> list[BookInfo]:
     # получение списка всех книг в библиотеке
         return self.books_lib.get_books()
 
-    def add_book(self, title: str, author_id: int, genre_id: int) -> Book:
+    def add_book(self, title: str, author_id: int, genre_id: int) -> BookInfo:
     # добавление новой книги
         return self.books_lib.add_book(title, author_id, genre_id)
 
@@ -20,21 +20,35 @@ class LibRepository(BooksLib):
     # отметка книги как прочитанной
         return self.books_lib.mark_as_read(book_id)
     
-    def find_books(self, **filters) -> list[Book]:
+    def find_books(self, **filters) -> list:
     # поиск книг по названию ,автору или жанру
         return self.books_lib.find_books(**filters)
     
+    def check_book_id(self, book_id: int) -> bool:
+    # проверка наличия книги в базе по переданному id
+        return self.books_lib.check_book_id(book_id)
+    
+
 # методы для работы с авторами
-    def add_author(self, name_author: Author) -> Author:
+    def add_author(self, name_author: str) -> Author:
     # добавление нового автора
         return self.authors_lib.add_author(name_author)
     
     def get_authors(self) -> list[Author]:
     # получение списка всех авторов
         return self.authors_lib.get_authors()
+    
+    def check_author_id(self, author_id: int) -> bool:
+    # проверка наличия автора в базе по переданному id
+        return self.authors_lib.check_author_id(author_id)
+    
+    def check_name_author(self, name_author: str) -> bool:
+    # проверка наличия автора по имени
+        return self.authors_lib.check_name_author(name_author)
+
 
 # методы для работы с жанрами    
-    def add_genre(self, name_genre: Genre) -> Genre:
+    def add_genre(self, name_genre: str) -> Genre:
     # добавление нового жанра
         return self.genres_lib.add_genre(name_genre)
     
@@ -42,8 +56,17 @@ class LibRepository(BooksLib):
     # получение списка всех жанров
         return self.genres_lib.get_genres()
     
+    def check_genre_id(self, genre_id: int) -> bool:
+    # проверка наличия жанра в базе по переданному id
+        return self.genres_lib.check_genre_id(genre_id)
+    
+    def check_name_genre(self, name_genre: str) -> bool:
+    # проверка наличия жанра по названию
+        return self.genres_lib.check_name_genre(name_genre)
+
+
 # рекомендации
-    def get_recomendations(self) -> list[Book]:
+    def get_recomendations(self) -> list[BookInfo]:
         books_list = self.books_lib.get_books()
         read_books = [b for b in books_list if b.is_read]
         unread_books = [b for b in books_list if not b.is_read]

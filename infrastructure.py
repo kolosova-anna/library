@@ -24,8 +24,8 @@ class DBConnectMethods():
         self.conn.close()
         return result
     
-    def get_id(self, query: str, *args) -> int:
-    # подключение к БД, выполнение запроса и возвращение результата запроса
+    def get_int(self, query: str, *args) -> int:
+    # подключение к БД, выполнение запроса, предпологающего возврат результата int
         self.conn = sqlite3.connect(self.db)
         self.cursor = self.conn.cursor()
         self.cursor.execute(query, args)
@@ -50,7 +50,7 @@ class AuthorsRepo(DBConnectMethods, AuthorsLib):
     #добавление автора в таблицу authors
         query: str = " INSERT INTO authors (name_author) VALUES (?) "
         self.execute_query(query, name_author.name_author)
-        author_id: int = self.get_id(" SELECT last_insert_rowid() FROM authors")
+        author_id: int = self.get_int(" SELECT last_insert_rowid() FROM authors")
         return Author(author_id, name_author.name_author)
 
     def get_authors(self) -> list[Author]:
@@ -78,7 +78,7 @@ class GenresRepo(DBConnectMethods, GenresLib):
     #добавление жанра в таблицу genres
         query: str = " INSERT INTO authors (name_genre) VALUES (?)"
         self.execute_query(query, name_genre.name_genre)
-        genre_id: int = self.get_id(" SELECT last_insert_rowid() FROM genres")
+        genre_id: int = self.get_int(" SELECT last_insert_rowid() FROM genres")
         return Genre(genre_id, name_genre.name_genre)
 
     def get_genres(self) -> list[Genre]:
@@ -112,7 +112,7 @@ class BooksRepo(DBConnectMethods, BooksLib):
     #добавление книги в таблицу books
         query: str = " INSERT INTO books (name_genre) VALUES (?, ?, ?)"
         self.execute_query(query, title, author_id, genre_id)
-        book_id: int = self.get_id(" SELECT last_insert_rowid() FROM books")
+        book_id: int = self.get_int(" SELECT last_insert_rowid() FROM books")
         return Book(book_id, title, author_id, genre_id)
     
     def get_books(self) -> list[Book]:
@@ -162,4 +162,11 @@ class BooksRepo(DBConnectMethods, BooksLib):
         books: list = self.execute_get_data(query, param)
         books_list: list[Book] = [Book(*row) for row in books]
         return books_list
+    
+    def check_book_id(self, book_id: int) -> bool:
+        query = " SELECT COUNT(*) FROM books WHERE book_id = ? "
+        res: int = self.get_int(query, book_id)
+        if res == 1:
+            return True
+        return False
     

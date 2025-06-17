@@ -1,11 +1,12 @@
 from core_interfaces import BooksLib, AuthorsLib, GenresLib
 from core_realizations import LibRepository
+from tabulate import tabulate
 
 class LibInterface():
     def __init__(self, lib_repo: LibRepository):
         self.library = lib_repo
 
-    def check_input(self) -> int:
+    def _check_input(self) -> int:
     # проверка введенного пользователем числа
         while True:
             try:
@@ -14,13 +15,13 @@ class LibInterface():
             except ValueError:
                 print("Ошибка. Введите целое число ")
 
-    def get_num(self) -> str:
+    def _get_num(self) -> str:
     # получение числа от пользователя (выбранный пункт меню)
         print("\nВведите число, соответствующее выбранному пункту меню:\n")
-        self.number = self.check_input()
+        self.number = self._check_input()
         return str(self.number)
     
-    def get_title(self) -> str:
+    def _get_title(self) -> str:
     # получение названия книги от пользователя
         while True:
                 self.title: str = input("Введите название книги: ")
@@ -29,7 +30,7 @@ class LibInterface():
                 else:
                     print("Название не может быть пустым. Попробуйте еще раз: ")
 
-    def get_author(self) -> str:
+    def _get_author(self) -> str:
     # получение нового автора от пользователя            
         while True:
                 self.author: str = input("Введите Фамилию и инициалы или псевдоним автора: ")
@@ -38,7 +39,7 @@ class LibInterface():
                 else:
                     print("Имя не может быть пустым. Попробуйте еще раз: ")
 
-    def get_genre(self) -> str:
+    def _get_genre(self) -> str:
     # получение названия книги от пользователя
         while True:
                 self.genre: str = input("Введите название жанра: ")
@@ -47,11 +48,64 @@ class LibInterface():
                 else:
                     print("Название жанра не может быть пустым. Попробуйте еще раз: ")
 
-    def get_id(self) -> int:
+    def _get_id(self) -> int:
     # получение id от пользователя
         print("Введите id:\n")
-        self.id: int = self.check_input()
+        self.id: int = self._check_input()
         return self.id
+    
+    def _show_books_list(self) -> None:
+    # получение списка всех книг
+        books: list = self.library.get_books()
+        if not books:
+            print(" Данные о книгах отсутствуют")
+            return
+        print(" Список всех книг:")
+        headers: list = ["ID", "Название", "Автор", "Жанр", "Прочитано"]
+        rows: list = []
+        for book in books:
+            rows.append([book.book_id, book.title, book.author, book.genre,
+                         "Да" if book.is_read else "Нет"])
+        print(tabulate(rows, headers=headers, tablefmt="grid"))
+
+    def _show_authors_list(self) -> None:
+    # получение списка всех авторов
+        authors: list = self.library.get_authors()
+        if not authors:
+            print(" Данные об авторах отсутствуют")
+            return
+        print(" Список всех авторов:")
+        headers: list = ["ID", "Автор"]
+        rows: list = []
+        for author in authors:
+            rows.append([author.author_id, author.name_author])
+        print(tabulate(rows, headers=headers, tablefmt="grid"))
+
+    def _show_genres_list(self) -> None:
+    # получение списка всех жанров
+        genres: list = self.library.get_genres()
+        if not genres:
+            print(" Данные о жанрах отсутствуют")
+            return
+        print(" Список всех жанров:")
+        headers: list = ["ID", "Жанр"]
+        rows: list = []
+        for genre in genres:
+            rows.append([genre.genre_id, genre.name_genre])
+        print(tabulate(rows, headers=headers, tablefmt="grid"))
+
+    def _find_books(self, **filters) -> None:
+        books: list = self.library.find_books(**filters)
+        if not books:
+            print(" По вашему запросу ни одной книги не найдено")
+            return
+        print(" Результаты поиска:")
+        headers: list = ["ID", "Название", "Автор", "Жанр", "Прочитано"]
+        rows: list = []
+        for book in books:
+            rows.append([book.book_id, book.title, book.author, book.genre,
+                         "Да" if book.is_read else "Нет"])
+        print(tabulate(rows, headers=headers, tablefmt="grid"))
          
     def run(self) -> None:
     # выводит меню пользователю и вызывает соответствующие функции ядра и инфраструктуры

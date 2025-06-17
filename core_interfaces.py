@@ -40,6 +40,10 @@ class BooksLib(ABC):
     @abstractmethod
     def find_books(self, **filters) -> list[Book]:
         pass
+
+    @abstractmethod
+    def check_book_id(self, book_id: int) -> bool:
+        pass
     
 
 class AuthorsLib(ABC):

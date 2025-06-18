@@ -3,11 +3,11 @@ from core_realizations import LibRepository
 from ui import LibInterface
 
 def main():
-    db = "library.db"
+    db = "lib.db"
     conn = DBConnectMethods(db)
-    authors_repo = AuthorsRepo()
-    genres_repo = GenresRepo()
-    books_repo = BooksRepo()
+    authors_repo = AuthorsRepo(conn)
+    genres_repo = GenresRepo(conn)
+    books_repo = BooksRepo(conn)
     library = LibRepository(books_repo, authors_repo, genres_repo)
     ui = LibInterface(library)
     ui.run()

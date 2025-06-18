@@ -53,7 +53,7 @@ class AuthorsRepo(AuthorsLib):
     #добавление автора в таблицу authors
         query: str = " INSERT INTO authors (name_author) VALUES (?) "
         self.db._execute_query(query, name_author)
-        author_id: int = self.db._get_int(" SELECT last_insert_rowid() FROM authors")
+        author_id: int = self.db._get_int(" SELECT MAX(author_id) FROM authors")
         return Author(author_id, name_author)
 
     def get_authors(self) -> list[Author]:
@@ -98,7 +98,7 @@ class GenresRepo(GenresLib):
     #добавление жанра в таблицу genres
         query: str = " INSERT INTO genres (name_genre) VALUES (?)"
         self.db._execute_query(query, name_genre)
-        genre_id: int = self.db._get_int(" SELECT last_insert_rowid() FROM genres")
+        genre_id: int = self.db._get_int(" SELECT MAX(genre_id) FROM genres")
         return Genre(genre_id, name_genre)
 
     def get_genres(self) -> list[Genre]:

@@ -1,30 +1,31 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
+
 @dataclass
-class Book():
-# свойсктва для описания книги
+class Book:
     book_id: int
     title: str
     author_id: int
     genre_id: int
     is_read: bool = False
 
+
 @dataclass
-class Author():
-# свойсктва для описания автора
+class Author:
     author_id: int
     name_author: str
 
+
 @dataclass
-class Genre():
-# свойсктва для описания жанра
+class Genre:
     genre_id: int
     name_genre: str
 
+
 @dataclass
-class BookInfo():
-# полная информация о книге, объединенные данные
+class BookInfo:
+    ''' Полная информация о книге, объединенные данные '''
     book_id: int
     title: str
     author_id: int
@@ -35,22 +36,30 @@ class BookInfo():
 
 
 class BooksLib(ABC):
-# интерфейс для работы с книгами
+    ''' Интерфейс для работы с книгами '''
     
     @abstractmethod
     def get_books(self) -> list[BookInfo]:
         pass
 
     @abstractmethod
-    def add_book(self, title: str, author_id: int, genre_id: int) -> BookInfo:
+    def add_book(self, title: str, author_id: int, genre_id: int) -> None:
         pass
 
     @abstractmethod
-    def mark_as_read(self, book_id: int) -> Book:
+    def get_last_book(self) -> BookInfo:
         pass
 
     @abstractmethod
-    def find_books(self, **filters) -> list:
+    def mark_as_read(self, book_id: int) -> None:
+        pass
+    
+    @abstractmethod
+    def get_book_by_id(self, book_id: int) -> Book:
+        pass
+
+    @abstractmethod
+    def find_books(self, **filters: dict) -> list[BookInfo]:
         pass
 
     @abstractmethod
@@ -59,10 +68,14 @@ class BooksLib(ABC):
     
 
 class AuthorsLib(ABC):
-# интерфейс для работы с авторами
+    ''' Интерфейс для работы с авторами '''
 
     @abstractmethod
-    def add_author(self, name_author: str) -> Author:
+    def add_author(self, name_author: str) -> None:
+        pass
+
+    @abstractmethod
+    def get_last_author(self) -> Author:
         pass
 
     @abstractmethod
@@ -79,10 +92,14 @@ class AuthorsLib(ABC):
 
 
 class GenresLib(ABC):
-# интерфейс для работы с жанрами
+    ''' Интерфейс для работы с жанрами '''
 
     @abstractmethod
-    def add_genre(self, name_genre: str) -> Genre:
+    def add_genre(self, name_genre: str) -> None:
+        pass
+
+    @abstractmethod
+    def get_last_genre(self) -> Genre:
         pass
 
     @abstractmethod

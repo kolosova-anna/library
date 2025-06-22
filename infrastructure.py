@@ -43,7 +43,7 @@ class AuthorsRepo(AuthorsLib):
         self.db.execute_query(query)
 
     def add_author(self, name_author: str) -> None:
-        query = " INSERT INTO authors (name_author) VALUES (?) "
+        query = "INSERT INTO authors (name_author) VALUES (?)"
         self.db.execute_query(query, name_author)
     
     def get_last_author(self) -> Author:
@@ -58,14 +58,14 @@ class AuthorsRepo(AuthorsLib):
         return authors_list[0]
 
     def get_authors(self) -> list[Author]:
-        query = '''SELECT author_id, name_author FROM authors'''
+        query = "SELECT author_id, name_author FROM authors"
         authors = self.db.execute_get_data(query)
         authors_list = [Author(*row) for row in authors]
         return authors_list
     
     def check_author_id(self, author_id: int) -> bool:
         # проверка наличия автора в базе по переданному id
-        query = '''SELECT COUNT(*) FROM authors WHERE author_id = ?'''
+        query = "SELECT COUNT(*) FROM authors WHERE author_id = ?"
         res = self.db.get_int(query, author_id)
         if res == 1:
             return True
@@ -73,7 +73,7 @@ class AuthorsRepo(AuthorsLib):
     
     def check_name_author(self, name_author: str) -> bool:
         # проверка наличия автора в базе по имени
-        query = '''SELECT COUNT(*) FROM authors WHERE name_author = ?'''
+        query = "SELECT COUNT(*) FROM authors WHERE name_author = ?"
         res = self.db.get_int(query, name_author)
         if res == 1:
             return True
@@ -94,7 +94,7 @@ class GenresRepo(GenresLib):
         self.db.execute_query(query)
 
     def add_genre(self, name_genre: str) -> None:
-        query = '''INSERT INTO genres (name_genre) VALUES (?)'''
+        query = "INSERT INTO genres (name_genre) VALUES (?)"
         self.db.execute_query(query, name_genre)
 
     def get_last_genre(self) -> Genre:
@@ -109,14 +109,14 @@ class GenresRepo(GenresLib):
         return genres_list[0]
 
     def get_genres(self) -> list[Genre]:
-        query = '''SELECT genre_id, name_genre FROM genres'''
+        query = "SELECT genre_id, name_genre FROM genres"
         genres = self.db.execute_get_data(query)
         genres_list = [Genre(*row) for row in genres]
         return genres_list
     
     def check_genre_id(self, genre_id: int) -> bool:
         # проверка наличия жанра в базе по переданному id
-        query = '''SELECT COUNT(*) FROM genres WHERE genre_id = ?'''
+        query = "SELECT COUNT(*) FROM genres WHERE genre_id = ?"
         res = self.db.get_int(query, genre_id)
         if res == 1:
             return True
@@ -124,7 +124,7 @@ class GenresRepo(GenresLib):
     
     def check_name_genre(self, name_genre: str) -> bool:
         # проверка наличия жанра в базе по названию
-        query = '''SELECT COUNT(*) FROM genres WHERE name_genre = ?'''
+        query = "SELECT COUNT(*) FROM genres WHERE name_genre = ?"
         res = self.db.get_int(query, name_genre)
         if res == 1:
             return True
@@ -150,7 +150,7 @@ class BooksRepo(BooksLib):
         self.db.execute_query(query)
     
     def add_book(self, title: str, author_id: int, genre_id: int) -> None:
-        query = '''INSERT INTO books (title, author_id, genre_id) VALUES (?, ?, ?)'''
+        query = "INSERT INTO books (title, author_id, genre_id) VALUES (?, ?, ?)"
         self.db.execute_query(query, title, author_id, genre_id)
     
     def get_last_book(self) -> BookInfo:
@@ -184,11 +184,11 @@ class BooksRepo(BooksLib):
         return books_list
     
     def mark_as_read(self, book_id: int) -> None:
-        query = '''UPDATE books SET is_read = 1 WHERE book_id = ?'''
+        query = "UPDATE books SET is_read = 1 WHERE book_id = ?"
         self.db.execute_query(query, book_id)
     
     def get_book_by_id(self, book_id: int) -> Book:
-        res = self.db.execute_get_data(" SELECT * FROM books WHERE book_id = ? ", book_id)
+        res = self.db.execute_get_data("SELECT * FROM books WHERE book_id = ?", book_id)
         book_l = [Book(*row) for row in res]
         book: Book = book_l[0]
         return book
@@ -205,15 +205,9 @@ class BooksRepo(BooksLib):
             JOIN genres g ON b.genre_id = g.genre_id
             WHERE
         '''
-        key = next(iter(filters))
-        value = filters[key]
-        if key == "title":
-            query += " title LIKE ?"
-        elif key == "name_author":
-            query += " name_author LIKE ?"
-        elif key == "name_genre":
-            query += " name_genre LIKE ?"
         
+        key, value = next(iter(filters.items()))
+        query += f" {key} LIKE ?"        
         param = f"%{value}%"
 
         books = self.db.execute_get_data(query, param)
@@ -222,7 +216,7 @@ class BooksRepo(BooksLib):
     
     def check_book_id(self, book_id: int) -> bool:
         # проверка наличия книги в базе по переданному id
-        query = '''SELECT COUNT(*) FROM books WHERE book_id = ?'''
+        query = "SELECT COUNT(*) FROM books WHERE book_id = ?"
         res = self.db.get_int(query, book_id)
         if res == 1:
             return True

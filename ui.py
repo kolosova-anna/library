@@ -1,14 +1,17 @@
-from core_realizations import LibService
+from core_realizations import UnitOfWork, BookService, AuthorsService, GenresService, Recomendations
 from tabulate import tabulate
 
 
-class LibInterface:
+class LibScreen:
     ''' Методы, реализующие интерфейс для взаимодействия с пользователем '''
-    def __init__(self, lib_repo: LibService):
-        self.library = lib_repo
+    def __init__(self, b_serv: BookService, a_serv: AuthorsService, g_serv: GenresService, rec: Recomendations):
+        self.b_serv = b_serv
+        self.a_serv = a_serv
+        self.g_serv = g_serv
+        self.rec = rec
 
     def run(self) -> None:
-        self.show_menu_main()
+        self._show_menu_main()
         while True:
             choice = self._get_num()
             match choice:
@@ -28,13 +31,13 @@ class LibInterface:
                     print("\nРаздел с введенным номером не найден")
 
     def _run_menu_book(self) -> None:
-        self.show_menu_book()
+        self._show_menu_book()
         while True:
             choice = self._get_num()
             match choice:
                 case '1':
                     self._show_books_list()
-                    self.show_menu_book()
+                    self._show_menu_book()
                 case '2':
                     title = self._get_title()
                     print("\nВведите сначала id автора, затем id жанра")
@@ -43,66 +46,66 @@ class LibInterface:
                     self._show_genres_list()
                     genre_id = self._get_id()
                     self._add_book(title, author_id, genre_id)
-                    self.show_menu_book()
+                    self._show_menu_book()
                 case '3':
                     title = self._get_title()
                     self._find_books(title=title)
-                    self.show_menu_book()
+                    self._show_menu_book()
                 case '4':
                     author = self._get_author()
                     self._find_books(name_author=author)
-                    self.show_menu_book()
+                    self._show_menu_book()
                 case '5':
                     genre = self._get_genre()
                     self._find_books(name_genre=genre)
-                    self.show_menu_book()
+                    self._show_menu_book()
                 case '6':
                     book_id = self._get_id()
                     self._mark_as_read(book_id)
-                    self.show_menu_book()
+                    self._show_menu_book()
                 case '0':
-                    self.show_menu_main()
+                    self._show_menu_main()
                     break
                 case _:
                     print("\nРаздел с введенным номером не найден")
 
     def _run_menu_author(self) -> None:
-        self.show_menu_author()
+        self._show_menu_author()
         while True:
             choice = self._get_num()
             match choice:
                 case '1':
                     self._show_authors_list()
-                    self.show_menu_author()
+                    self._show_menu_author()
                 case '2':
                     author = self._get_author()
                     self._add_author(author)
-                    self.show_menu_author()
+                    self._show_menu_author()
                 case '0':
-                    self.show_menu_main()
+                    self._show_menu_main()
                     break
                 case _:
                     print("\nРаздел с введенным номером не найден")
 
     def _run_menu_genre(self) -> None:
-        self.show_menu_genre()
+        self._show_menu_genre()
         while True:
             choice = self._get_num()
             match choice:
                 case '1':
                     self._show_genres_list()
-                    self.show_menu_genre()
+                    self._show_menu_genre()
                 case '2':
                     genre = self._get_genre()
                     self._add_genre(genre)
-                    self.show_menu_genre()
+                    self._show_menu_genre()
                 case '0':
-                    self.show_menu_main()
+                    self._show_menu_main()
                     break
                 case _:
                     print("\nРаздел с введенным номером не найден")    
 
-    def show_menu_main(self) -> None:
+    def _show_menu_main(self) -> None:
         print("\n Добро пожаловать в библиотеку!")
         print("\nВведите номер нужного раздела меню:")
         print("1. Книги")
@@ -111,7 +114,7 @@ class LibInterface:
         print("4. Посмотреть рекомендации")
         print("0. Выйти")
 
-    def show_menu_book(self) -> None:
+    def _show_menu_book(self) -> None:
         print("\n Вы перешли в раздел для работы с книгами")
         print("\nВведите номер нужного пункта меню:")
         print("1. Посмотреть список всех книг")
@@ -122,14 +125,14 @@ class LibInterface:
         print("6. Отметить книгу как прочитанную")
         print("0. Вернуться в основное меню")
 
-    def show_menu_author(self) -> None:
+    def _show_menu_author(self) -> None:
         print("\n Вы перешли в раздел для работы с авторами")
         print("\nВведите номер нужного пункта меню:")
         print("1. Посмотреть список всех авторов")
         print("2. Добавить нового автора")
         print("0. Вернуться в основное меню")
 
-    def show_menu_genre(self) -> None:
+    def _show_menu_genre(self) -> None:
         print("\n  Вы перешли в раздел для работы с жанрами")
         print("\nВведите номер нужного пункта меню:")
         print("1. Посмотреть список всех жанров")
@@ -179,7 +182,7 @@ class LibInterface:
         return self.id
     
     def _show_books_list(self) -> None:
-        books = self.library.book_service.get_books()
+        books = self.b_serv.get_books()
         if not books:
             print("\nДанные о книгах отсутствуют.")
             return
@@ -192,7 +195,7 @@ class LibInterface:
         print(tabulate(rows, headers=headers, tablefmt="grid"))
 
     def _show_authors_list(self) -> None:
-        authors = self.library.author_service.get_authors()
+        authors = self.a_serv.get_authors()
         if not authors:
             print("\nДанные об авторах отсутствуют.")
             return
@@ -204,7 +207,7 @@ class LibInterface:
         print(tabulate(rows, headers=headers, tablefmt="grid"))
 
     def _show_genres_list(self) -> None:
-        genres = self.library.genre_service.get_genres()
+        genres = self.g_serv.get_genres()
         if not genres:
             print("\nДанные о жанрах отсутствуют.")
             return
@@ -217,7 +220,7 @@ class LibInterface:
 
     def _find_books(self, **filters) -> None:
         # поиск книги по одному из аргументов: названию, автору или жанру
-        books = self.library.book_service.find_books(**filters)
+        books = self.b_serv.find_books(**filters)
         if not books:
             print("\nПо вашему запросу ни одной книги не найдено.")
             return
@@ -230,23 +233,23 @@ class LibInterface:
         print(tabulate(rows, headers=headers, tablefmt="grid"))
 
     def _mark_as_read(self, book_id: int) -> None:
-        check = self.library.book_service.check_book_id(book_id)
+        check = self.b_serv.check_book_id(book_id)
         if check:
-            self.library.book_service.mark_as_read(book_id)
-            book = self.library.book_service.get_book_by_id(book_id)
+            self.b_serv.mark_as_read(book_id)
+            book = self.b_serv.get_book_by_id(book_id)
             print(f"\nКнига '{book.title}' отмечена как прочитанная.")
             return
         print(f"Книга с id {book_id} не найдена.")
 
     def _add_book(self, title: str, author_id: int, genre_id: int) -> None:
-        check_author = self.library.author_service.check_author_id(author_id)
-        check_genre = self.library.genre_service.check_genre_id(genre_id)
+        check_author = self.a_serv.check_author_id(author_id)
+        check_genre = self.g_serv.check_genre_id(genre_id)
         if not check_author:
             print(f"\nПо id {author_id} авторы не найдены. Проверьте id или внесите информацию о новом авторе.")
         if not check_genre:
             print(f"\nПо id {genre_id} жанры не найдено. Проверьте id или внесите информацию о новом жанре.")
-        self.library.book_service.add_book(title, author_id, genre_id)
-        book = [self.library.book_service.get_last_book()]
+        self.b_serv.add_book(title, author_id, genre_id)
+        book = [self.b_serv.get_last_book()]
         print("\nНовая книга добавлена:")
         headers = ["ID", "Название", "Автор", "Жанр", "Прочитано"]
         rows = []
@@ -256,10 +259,10 @@ class LibInterface:
         print(tabulate(rows, headers=headers, tablefmt="grid"))
 
     def _add_author(self, name_author: str) -> None:
-        check = self.library.author_service.check_name_author(name_author)
+        check = self.a_serv.check_name_author(name_author)
         if not check:
-            self.library.author_service.add_author(name_author)
-            author = [self.library.author_service.get_last_author()]
+            self.a_serv.add_author(name_author)
+            author = [self.a_serv.get_last_author()]
             print("\nДобавлен новый автор:")
             headers = ["ID", "Автор"]
             rows = []
@@ -270,10 +273,10 @@ class LibInterface:
         print("\nАвтор с таким именем уже есть в списке")
 
     def _add_genre(self, name_genre: str) -> None:
-        check = self.library.genre_service.check_name_genre(name_genre)
+        check = self.g_serv.check_name_genre(name_genre)
         if not check:
-            self.library.genre_service.add_genre(name_genre)
-            genre = [self.library.genre_service.get_last_genre()]
+            self.g_serv.add_genre(name_genre)
+            genre = [self.g_serv.get_last_genre()]
             print("\nДобавлен новый жанр:")
             headers = ["ID", "Жанр"]
             rows = []
@@ -284,7 +287,7 @@ class LibInterface:
         print("\nЖанр с таким названием уже есть в списке")
 
     def _show_recomendations(self) -> None:
-        books = self.library.recomendations.get_recomendations()
+        books = self.rec.get_recomendations()
         if not books:
             print("\nРекомендаций не найдено. Все книги уже прочитаныю")
         print("\nРекомендуемые к прочтению книги:")

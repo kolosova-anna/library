@@ -1,5 +1,5 @@
 import sqlite3
-from core_interfaces import Book, Author, Genre, BookInfo, BooksLib, AuthorsLib, GenresLib
+from core_interfaces import Book, Author, Genre, BookInfo, IBooksRepo, IAuthorsRepo, IGenresRepo
 
 
 class DBConnectMethods:
@@ -27,9 +27,12 @@ class DBConnectMethods:
             cursor.execute(query, args)
             result: tuple = cursor.fetchone()
         return result[0]
+    
+    def close(self) -> None:
+        self.connection.close()
 
 
-class AuthorsRepo(AuthorsLib):
+class AuthorsRepo(IAuthorsRepo):
     ''' Содержит методы для хранения и обработки данных об авторах '''
 
     def __init__(self, db):
@@ -80,7 +83,7 @@ class AuthorsRepo(AuthorsLib):
         return False
 
 
-class GenresRepo(GenresLib):
+class GenresRepo(IGenresRepo):
     ''' Содержит методы для хранения и обработки данных о жанрах '''
 
     def __init__(self, db):
@@ -130,7 +133,7 @@ class GenresRepo(GenresLib):
             return True
         return False
 
-class BooksRepo(BooksLib):
+class BooksRepo(IBooksRepo):
     ''' Cодержит методы для хранения и обработки данных о книгах '''
    
     def __init__(self, db):
@@ -205,7 +208,7 @@ class BooksRepo(BooksLib):
             JOIN genres g ON b.genre_id = g.genre_id
             WHERE
         '''
-        
+
         key, value = next(iter(filters.items()))
         query += f" {key} LIKE ?"        
         param = f"%{value}%"

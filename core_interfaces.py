@@ -35,7 +35,7 @@ class BookInfo:
     is_read: bool
 
 
-class BooksLib(ABC):
+class IBooksRepo(ABC):
     ''' Интерфейс для работы с книгами '''
     
     @abstractmethod
@@ -67,7 +67,7 @@ class BooksLib(ABC):
         pass
     
 
-class AuthorsLib(ABC):
+class IAuthorsRepo(ABC):
     ''' Интерфейс для работы с авторами '''
 
     @abstractmethod
@@ -91,7 +91,7 @@ class AuthorsLib(ABC):
         pass
 
 
-class GenresLib(ABC):
+class IGenresRepo(ABC):
     ''' Интерфейс для работы с жанрами '''
 
     @abstractmethod

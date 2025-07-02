@@ -48,16 +48,25 @@ class LibScreen:
                     self._add_book(title, author_id, genre_id)
                     self._show_menu_book()
                 case '3':
-                    title = self._get_title()
-                    self._find_books(title=title)
+                    try:
+                        title = self._get_title()
+                        self._find_books(title=title)
+                    except ValueError as e:
+                        print(f"\nОшибка: {e}")
                     self._show_menu_book()
                 case '4':
-                    author = self._get_author()
-                    self._find_books(name_author=author)
+                    try:
+                        author = self._get_author()
+                        self._find_books(name_author=author)
+                    except ValueError as e:
+                        print(f"\nОшибка: {e}")
                     self._show_menu_book()
                 case '5':
-                    genre = self._get_genre()
-                    self._find_books(name_genre=genre)
+                    try:
+                        genre = self._get_genre()
+                        self._find_books(name_genre=genre)
+                    except ValueError as e:
+                        print(f"\nОшибка: {e}")
                     self._show_menu_book()
                 case '6':
                     book_id = self._get_id()
@@ -248,8 +257,13 @@ class LibScreen:
             print(f"\nПо id {author_id} авторы не найдены. Проверьте id или внесите информацию о новом авторе.")
         if not check_genre:
             print(f"\nПо id {genre_id} жанры не найдено. Проверьте id или внесите информацию о новом жанре.")
-        self.b_serv.add_book(title, author_id, genre_id)
-        book = [self.b_serv.get_last_book()]
+        check = self.b_serv.check_new_book(title, author_id)
+        author = self.a_serv.get_author_by_id(author_id)
+        if check:
+            print(f"\nКнига '{title}' автора {author.name_author} уже есть в библиотеке")
+            return
+        book_id = self.b_serv.add_book(title, author_id, genre_id)
+        book = [self.b_serv.get_book_by_id(book_id)]
         print("\nНовая книга добавлена:")
         headers = ["ID", "Название", "Автор", "Жанр", "Прочитано"]
         rows = []
@@ -261,8 +275,8 @@ class LibScreen:
     def _add_author(self, name_author: str) -> None:
         check = self.a_serv.check_name_author(name_author)
         if not check:
-            self.a_serv.add_author(name_author)
-            author = [self.a_serv.get_last_author()]
+            author_id = self.a_serv.add_author(name_author)
+            author = [self.a_serv.get_author_by_id(author_id)]
             print("\nДобавлен новый автор:")
             headers = ["ID", "Автор"]
             rows = []
@@ -275,8 +289,8 @@ class LibScreen:
     def _add_genre(self, name_genre: str) -> None:
         check = self.g_serv.check_name_genre(name_genre)
         if not check:
-            self.g_serv.add_genre(name_genre)
-            genre = [self.g_serv.get_last_genre()]
+            genre_id = self.g_serv.add_genre(name_genre)
+            genre = [self.g_serv.get_genre_by_id(genre_id)]
             print("\nДобавлен новый жанр:")
             headers = ["ID", "Жанр"]
             rows = []

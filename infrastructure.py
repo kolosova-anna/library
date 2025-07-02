@@ -45,18 +45,15 @@ class AuthorsRepo(IAuthorsRepo):
         '''
         self.db.execute_query(query)
 
-    def add_author(self, name_author: str) -> None:
+    def add_author(self, name_author: str) -> int:
         query = "INSERT INTO authors (name_author) VALUES (?)"
         self.db.execute_query(query, name_author)
+        query = "SELECT author_id FROM authors WHERE name_author = ?"
+        return self.db.get_int(query, name_author)
     
-    def get_last_author(self) -> Author:
-        query = '''
-            SELECT author_id, name_author
-            FROM authors
-            ORDER BY author_id DESC
-            LIMIT 1
-        '''
-        authors = self.db.execute_get_data(query)
+    def get_author_by_id(self, author_id: int) -> Author:
+        query = "SELECT author_id, name_author FROM authors WHERE author_id = ?"
+        authors = self.db.execute_get_data(query, author_id)
         authors_list = [Author(*row) for row in authors]
         return authors_list[0]
 
@@ -96,18 +93,15 @@ class GenresRepo(IGenresRepo):
         '''
         self.db.execute_query(query)
 
-    def add_genre(self, name_genre: str) -> None:
+    def add_genre(self, name_genre: str) -> int:
         query = "INSERT INTO genres (name_genre) VALUES (?)"
         self.db.execute_query(query, name_genre)
+        query = "SELECT genre_id, name_genre FROM genres WHERE name_genre = ?"
+        return self.db.get_int(query, name_genre)
 
-    def get_last_genre(self) -> Genre:
-        query = '''
-            SELECT genre_id, name_genre
-            FROM genres
-            ORDER BY genre_id DESC
-            LIMIT 1
-        '''
-        genres = self.db.execute_get_data(query)
+    def get_genre_by_id(self, genre_id: int) -> Genre:
+        query = "SELECT genre_id, name_genre FROM genres WHERE genre_id = ?"
+        genres = self.db.execute_get_data(query, genre_id)
         genres_list = [Genre(*row) for row in genres]
         return genres_list[0]
 
@@ -152,26 +146,17 @@ class BooksRepo(IBooksRepo):
         '''
         self.db.execute_query(query)
     
-    def add_book(self, title: str, author_id: int, genre_id: int) -> None:
+    def add_book(self, title: str, author_id: int, genre_id: int) -> int:
         query = "INSERT INTO books (title, author_id, genre_id) VALUES (?, ?, ?)"
         self.db.execute_query(query, title, author_id, genre_id)
-    
-    def get_last_book(self) -> BookInfo:
         query = '''
-            SELECT book_id, title,
-            a.author_id, name_author,
-            g.genre_id, name_genre,
-            is_read
-            FROM books b
-            JOIN authors a ON b.author_id = a.author_id
-            JOIN genres g ON b.genre_id = g.genre_id
-            ORDER BY book_id DESC
-            LIMIT 1
+            SELECT book_id FROM books
+            WHERE title = ? AND
+            author_id = ? AND
+            genre_id = ?
         '''
-        books = self.db.execute_get_data(query)
-        book = [BookInfo(*row) for row in books]
-        return book[0]
-    
+        return self.db.get_int(query, title, author_id, genre_id)
+        
     def get_books(self) -> list[BookInfo]:
         query = '''
             SELECT book_id, title,
@@ -190,10 +175,20 @@ class BooksRepo(IBooksRepo):
         query = "UPDATE books SET is_read = 1 WHERE book_id = ?"
         self.db.execute_query(query, book_id)
     
-    def get_book_by_id(self, book_id: int) -> Book:
-        res = self.db.execute_get_data("SELECT * FROM books WHERE book_id = ?", book_id)
-        book_l = [Book(*row) for row in res]
-        book: Book = book_l[0]
+    def get_book_by_id(self, book_id: int) -> BookInfo:
+        query = '''
+            SELECT book_id, title,
+            a.author_id, name_author,
+            g.genre_id, name_genre,
+            is_read
+            FROM books b
+            JOIN authors a ON b.author_id = a.author_id
+            JOIN genres g ON b.genre_id = g.genre_id
+            WHERE book_id = ?
+        '''
+        res = self.db.execute_get_data(query, book_id)
+        book_l = [BookInfo(*row) for row in res]
+        book: BookInfo = book_l[0]
         return book
     
     def find_books(self, **filters: dict) -> list:
@@ -208,11 +203,9 @@ class BooksRepo(IBooksRepo):
             JOIN genres g ON b.genre_id = g.genre_id
             WHERE
         '''
-
         key, value = next(iter(filters.items()))
         query += f" {key} LIKE ?"        
         param = f"%{value}%"
-
         books = self.db.execute_get_data(query, param)
         books_list = [BookInfo(*row) for row in books]
         return books_list

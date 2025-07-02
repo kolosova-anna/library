@@ -43,11 +43,7 @@ class IBooksRepo(ABC):
         pass
 
     @abstractmethod
-    def add_book(self, title: str, author_id: int, genre_id: int) -> None:
-        pass
-
-    @abstractmethod
-    def get_last_book(self) -> BookInfo:
+    def add_book(self, title: str, author_id: int, genre_id: int) -> int:
         pass
 
     @abstractmethod
@@ -55,7 +51,7 @@ class IBooksRepo(ABC):
         pass
     
     @abstractmethod
-    def get_book_by_id(self, book_id: int) -> Book:
+    def get_book_by_id(self, book_id: int) -> BookInfo:
         pass
 
     @abstractmethod
@@ -71,11 +67,11 @@ class IAuthorsRepo(ABC):
     ''' Интерфейс для работы с авторами '''
 
     @abstractmethod
-    def add_author(self, name_author: str) -> None:
+    def add_author(self, name_author: str) -> int:
         pass
 
     @abstractmethod
-    def get_last_author(self) -> Author:
+    def get_author_by_id(self, author_id: int) -> Author:
         pass
 
     @abstractmethod
@@ -95,11 +91,11 @@ class IGenresRepo(ABC):
     ''' Интерфейс для работы с жанрами '''
 
     @abstractmethod
-    def add_genre(self, name_genre: str) -> None:
+    def add_genre(self, name_genre: str) -> int:
         pass
 
     @abstractmethod
-    def get_last_genre(self) -> Genre:
+    def get_genre_by_id(self, genre_id: int) -> Genre:
         pass
 
     @abstractmethod

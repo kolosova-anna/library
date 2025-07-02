@@ -21,25 +21,32 @@ class BookService:
     def get_books(self) -> list[BookInfo]:
         return self.uow.books_lib.get_books()
 
-    def add_book(self, title: str, author_id: int, genre_id: int) -> None:
+    def add_book(self, title: str, author_id: int, genre_id: int) -> int:
         return self.uow.books_lib.add_book(title, author_id, genre_id)
     
-    def get_last_book(self) -> BookInfo:
-        return self.uow.books_lib.get_last_book()
-
     def mark_as_read(self, book_id: int) -> None:
         return self.uow.books_lib.mark_as_read(book_id)
     
-    def get_book_by_id(self, book_id: int) -> Book:
+    def get_book_by_id(self, book_id: int) -> BookInfo:
         return self.uow.books_lib.get_book_by_id(book_id)
     
-    def find_books(self, **filters) -> list:
+    def find_books(self, **filters) -> list[BookInfo]:
         # поиск книг по названию ,автору или жанру
-        return self.uow.books_lib.find_books(**filters)
+        if filters:
+            return self.uow.books_lib.find_books(**filters)
+        else:
+            raise ValueError("Missing arguments for the function")
     
     def check_book_id(self, book_id: int) -> bool:
         # проверка наличия книги в базе по переданному id
         return self.uow.books_lib.check_book_id(book_id)
+    
+    def check_new_book(self, title: str, author_id: int) -> bool:
+        books = self.find_books(title=title)
+        same_books = [b for b in books if b.author_id == author_id]
+        if same_books:
+            return True
+        return False
     
 
 class AuthorsService:
@@ -48,11 +55,11 @@ class AuthorsService:
     def __init__(self, uow: UnitOfWork):
         self.uow = uow
 
-    def add_author(self, name_author: str) -> None:
+    def add_author(self, name_author: str) -> int:
         return self.uow.authors_lib.add_author(name_author)
     
-    def get_last_author(self) -> Author:
-        return self.uow.authors_lib.get_last_author()
+    def get_author_by_id(self, author_id: int) -> Author:
+        return self.uow.authors_lib.get_author_by_id(author_id)
     
     def get_authors(self) -> list[Author]:
         return self.uow.authors_lib.get_authors()
@@ -71,11 +78,11 @@ class GenresService:
     def __init__(self, uow: UnitOfWork):
         self.uow = uow
 
-    def add_genre(self, name_genre: str) -> None:
+    def add_genre(self, name_genre: str) -> int:
         return self.uow.genres_lib.add_genre(name_genre)
     
-    def get_last_genre(self) -> Genre:
-        return self.uow.genres_lib.get_last_genre()
+    def get_genre_by_id(self, genre_id: int) -> Genre:
+        return self.uow.genres_lib.get_genre_by_id(genre_id)
     
     def get_genres(self) -> list[Genre]:
         return self.uow.genres_lib.get_genres()

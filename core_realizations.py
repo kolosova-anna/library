@@ -3,14 +3,10 @@ from core_interfaces import Book, Author, Genre, BookInfo, IBooksRepo, IAuthorsR
 
 class UnitOfWork:
     ''' Реализация методов для работы с книгами '''
-    def __init__(self, books_lib: IBooksRepo, authors_lib: IAuthorsRepo, genres_lib: IGenresRepo):
-        self.books_lib = books_lib
-        self.authors_lib = authors_lib
-        self.genres_lib = genres_lib
-#        self.book_service = BookService(self)
-#        self.author_service = AuthorsService(self)
-#        self.genre_service = GenresService(self)
-#        self.recomendations = Recomendations(self)
+    def __init__(self, books_repo: IBooksRepo, authors_repo: IAuthorsRepo, genres_repo: IGenresRepo):
+        self.books_repo = books_repo
+        self.authors_repo = authors_repo
+        self.genres_repo = genres_repo
 
 
 class BookService:
@@ -19,27 +15,27 @@ class BookService:
         self.uow = uow
 
     def get_books(self) -> list[BookInfo]:
-        return self.uow.books_lib.get_books()
+        return self.uow.books_repo.get_books()
 
     def add_book(self, title: str, author_id: int, genre_id: int) -> int:
-        return self.uow.books_lib.add_book(title, author_id, genre_id)
+        return self.uow.books_repo.add_book(title, author_id, genre_id)
     
     def mark_as_read(self, book_id: int) -> None:
-        return self.uow.books_lib.mark_as_read(book_id)
+        return self.uow.books_repo.mark_as_read(book_id)
     
     def get_book_by_id(self, book_id: int) -> BookInfo:
-        return self.uow.books_lib.get_book_by_id(book_id)
+        return self.uow.books_repo.get_book_by_id(book_id)
     
     def find_books(self, **filters) -> list[BookInfo]:
         # поиск книг по названию ,автору или жанру
         if filters:
-            return self.uow.books_lib.find_books(**filters)
+            return self.uow.books_repo.find_books(**filters)
         else:
             raise ValueError("Missing arguments for the function")
     
     def check_book_id(self, book_id: int) -> bool:
         # проверка наличия книги в базе по переданному id
-        return self.uow.books_lib.check_book_id(book_id)
+        return self.uow.books_repo.check_book_id(book_id)
     
     def check_new_book(self, title: str, author_id: int) -> bool:
         books = self.find_books(title=title)
@@ -56,21 +52,21 @@ class AuthorsService:
         self.uow = uow
 
     def add_author(self, name_author: str) -> int:
-        return self.uow.authors_lib.add_author(name_author)
+        return self.uow.authors_repo.add_author(name_author)
     
     def get_author_by_id(self, author_id: int) -> Author:
-        return self.uow.authors_lib.get_author_by_id(author_id)
+        return self.uow.authors_repo.get_author_by_id(author_id)
     
     def get_authors(self) -> list[Author]:
-        return self.uow.authors_lib.get_authors()
+        return self.uow.authors_repo.get_authors()
     
     def check_author_id(self, author_id: int) -> bool:
         # проверка наличия автора в базе по переданному id
-        return self.uow.authors_lib.check_author_id(author_id)
+        return self.uow.authors_repo.check_author_id(author_id)
     
     def check_name_author(self, name_author: str) -> bool:
         # проверка наличия автора по имени
-        return self.uow.authors_lib.check_name_author(name_author)
+        return self.uow.authors_repo.check_name_author(name_author)
 
 
 class GenresService:
@@ -79,21 +75,21 @@ class GenresService:
         self.uow = uow
 
     def add_genre(self, name_genre: str) -> int:
-        return self.uow.genres_lib.add_genre(name_genre)
+        return self.uow.genres_repo.add_genre(name_genre)
     
     def get_genre_by_id(self, genre_id: int) -> Genre:
-        return self.uow.genres_lib.get_genre_by_id(genre_id)
+        return self.uow.genres_repo.get_genre_by_id(genre_id)
     
     def get_genres(self) -> list[Genre]:
-        return self.uow.genres_lib.get_genres()
+        return self.uow.genres_repo.get_genres()
     
     def check_genre_id(self, genre_id: int) -> bool:
         # проверка наличия жанра в базе по переданному id
-        return self.uow.genres_lib.check_genre_id(genre_id)
+        return self.uow.genres_repo.check_genre_id(genre_id)
     
     def check_name_genre(self, name_genre: str) -> bool:
         # проверка наличия жанра по названию
-        return self.uow.genres_lib.check_name_genre(name_genre)
+        return self.uow.genres_repo.check_name_genre(name_genre)
 
 
 class Recomendations:    
@@ -102,7 +98,7 @@ class Recomendations:
         self.uow = uow
 
     def get_recomendations(self) -> list[BookInfo]:
-        books_list = self.uow.books_lib.get_books()
+        books_list = self.uow.books_repo.get_books()
         read_books = [b for b in books_list if b.is_read]
         unread_books = [b for b in books_list if not b.is_read]
         read_genres = [b.genre_id for b in read_books]

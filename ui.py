@@ -50,21 +50,21 @@ class LibScreen:
                 case '3':
                     try:
                         title = self._get_title()
-                        self._find_books(title=title)
+                        self._find_books('title', title)
                     except ValueError as e:
                         print(f"\nОшибка: {e}")
                     self._show_menu_book()
                 case '4':
                     try:
                         author = self._get_author()
-                        self._find_books(name_author=author)
+                        self._find_books('name_author', author)
                     except ValueError as e:
                         print(f"\nОшибка: {e}")
                     self._show_menu_book()
                 case '5':
                     try:
                         genre = self._get_genre()
-                        self._find_books(name_genre=genre)
+                        self._find_books('name_genre', genre)
                     except ValueError as e:
                         print(f"\nОшибка: {e}")
                     self._show_menu_book()
@@ -227,9 +227,9 @@ class LibScreen:
             rows.append([genre.genre_id, genre.name_genre])
         print(tabulate(rows, headers=headers, tablefmt="grid"))
 
-    def _find_books(self, **filters) -> None:
+    def _find_books(self, param: str, value: str) -> None:
         # поиск книги по одному из аргументов: названию, автору или жанру
-        books = self.b_serv.find_books(**filters)
+        books = self.b_serv.find_books(param, value)
         if not books:
             print("\nПо вашему запросу ни одной книги не найдено.")
             return
@@ -251,31 +251,22 @@ class LibScreen:
         print(f"Книга с id {book_id} не найдена.")
 
     def _add_book(self, title: str, author_id: int, genre_id: int) -> None:
-        check_author = self.a_serv.check_author_id(author_id)
-        check_genre = self.g_serv.check_genre_id(genre_id)
-        if not check_author:
-            print(f"\nПо id {author_id} авторы не найдены. Проверьте id или внесите информацию о новом авторе.")
-        if not check_genre:
-            print(f"\nПо id {genre_id} жанры не найдено. Проверьте id или внесите информацию о новом жанре.")
-        check = self.b_serv.check_new_book(title, author_id)
-        author = self.a_serv.get_author_by_id(author_id)
-        if check:
-            print(f"\nКнига '{title}' автора {author.name_author} уже есть в библиотеке")
-            return
         book_id = self.b_serv.add_book(title, author_id, genre_id)
-        book = [self.b_serv.get_book_by_id(book_id)]
-        print("\nНовая книга добавлена:")
-        headers = ["ID", "Название", "Автор", "Жанр", "Прочитано"]
-        rows = []
-        for b in book:
-            rows.append([b.book_id, b.title, b.name_author, b.name_genre,
-                         "Да" if b.is_read else "Нет"])
-        print(tabulate(rows, headers=headers, tablefmt="grid"))
+        if book_id:
+            book = [self.b_serv.get_book_by_id(book_id)]
+            print("\nНовая книга добавлена:")
+            headers = ["ID", "Название", "Автор", "Жанр", "Прочитано"]
+            rows = []
+            for b in book:
+                rows.append([b.book_id, b.title, b.name_author, b.name_genre,
+                            "Да" if b.is_read else "Нет"])
+            print(tabulate(rows, headers=headers, tablefmt="grid"))
+        else:
+            print("При добавлении книги произошла ошибка. Попробуйте еще раз.")
 
     def _add_author(self, name_author: str) -> None:
-        check = self.a_serv.check_name_author(name_author)
-        if not check:
-            author_id = self.a_serv.add_author(name_author)
+        author_id = self.a_serv.add_author(name_author)
+        if author_id:
             author = [self.a_serv.get_author_by_id(author_id)]
             print("\nДобавлен новый автор:")
             headers = ["ID", "Автор"]
@@ -284,12 +275,12 @@ class LibScreen:
                 rows.append([a.author_id, a.name_author])
             print(tabulate(rows, headers=headers, tablefmt="grid"))
             return
-        print("\nАвтор с таким именем уже есть в списке")
+        else:
+            print("При добавлении автора произошла ошибка. Попробуйте еще раз.")
 
     def _add_genre(self, name_genre: str) -> None:
-        check = self.g_serv.check_name_genre(name_genre)
-        if not check:
-            genre_id = self.g_serv.add_genre(name_genre)
+        genre_id = self.g_serv.add_genre(name_genre)
+        if genre_id:
             genre = [self.g_serv.get_genre_by_id(genre_id)]
             print("\nДобавлен новый жанр:")
             headers = ["ID", "Жанр"]
@@ -298,7 +289,8 @@ class LibScreen:
                 rows.append([g.genre_id, g.name_genre])
             print(tabulate(rows, headers=headers, tablefmt="grid"))
             return
-        print("\nЖанр с таким названием уже есть в списке")
+        else:
+            print("При добавлении жанра произошла ошибка. Попробуйте еще раз.")
 
     def _show_recomendations(self) -> None:
         books = self.rec.get_recomendations()

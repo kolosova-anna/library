@@ -1,5 +1,6 @@
 import sqlite3
 from core_interfaces import Book, Author, Genre, BookInfo, IBooksRepo, IAuthorsRepo, IGenresRepo
+from core_realizations import Exceptions
 
 
 class DBConnectMethods:
@@ -21,12 +22,14 @@ class DBConnectMethods:
             result: list = cursor.fetchall()
         return result
     
-    def get_int(self, query: str, *args) -> int:
+    def get_int(self, query: str, *args) -> int | None:
         with self.connection as conn:
             cursor = conn.cursor()
             cursor.execute(query, args)
             result: tuple = cursor.fetchone()
-        return result[0]
+        if result:
+            return result[0]
+        return None
     
     def close(self) -> None:
         self.connection.close()
@@ -45,11 +48,19 @@ class AuthorsRepo(IAuthorsRepo):
         '''
         self.db.execute_query(query)
 
-    def add_author(self, name_author: str) -> int:
-        query = "INSERT INTO authors (name_author) VALUES (?)"
-        self.db.execute_query(query, name_author)
-        query = "SELECT author_id FROM authors WHERE name_author = ?"
-        return self.db.get_int(query, name_author)
+    def add_author(self, name_author: str) -> int | None:
+        try:
+            query_a = "SELECT COUNT(*) FROM authors WHERE name_author = ?"
+            res = self.db.get_int(query_a, name_author)
+            if res != 1:
+                query = "INSERT INTO authors (name_author) VALUES (?)"
+                self.db.execute_query(query, name_author)
+                query = "SELECT author_id FROM authors WHERE name_author = ?"
+                return self.db.get_int(query, name_author)
+            raise Exceptions("Такой автор уже есть в списке")
+        except Exceptions as e:
+            print(e)
+            return
     
     def get_author_by_id(self, author_id: int) -> Author:
         query = "SELECT author_id, name_author FROM authors WHERE author_id = ?"
@@ -71,14 +82,6 @@ class AuthorsRepo(IAuthorsRepo):
             return True
         return False
     
-    def check_name_author(self, name_author: str) -> bool:
-        # проверка наличия автора в базе по имени
-        query = "SELECT COUNT(*) FROM authors WHERE name_author = ?"
-        res = self.db.get_int(query, name_author)
-        if res == 1:
-            return True
-        return False
-
 
 class GenresRepo(IGenresRepo):
     ''' Содержит методы для хранения и обработки данных о жанрах '''
@@ -93,11 +96,19 @@ class GenresRepo(IGenresRepo):
         '''
         self.db.execute_query(query)
 
-    def add_genre(self, name_genre: str) -> int:
-        query = "INSERT INTO genres (name_genre) VALUES (?)"
-        self.db.execute_query(query, name_genre)
-        query = "SELECT genre_id, name_genre FROM genres WHERE name_genre = ?"
-        return self.db.get_int(query, name_genre)
+    def add_genre(self, name_genre: str) -> int | None:
+        try:
+            query_g = "SELECT COUNT(*) FROM genres WHERE name_genre = ?"
+            res = self.db.get_int(query_g, name_genre)
+            if res != 1:
+                query = "INSERT INTO genres (name_genre) VALUES (?)"
+                self.db.execute_query(query, name_genre)
+                query = "SELECT genre_id, name_genre FROM genres WHERE name_genre = ?"
+                return self.db.get_int(query, name_genre)
+            raise Exceptions("Такой жанр уже есть в списке")
+        except Exceptions as e:
+            print(e)
+            return
 
     def get_genre_by_id(self, genre_id: int) -> Genre:
         query = "SELECT genre_id, name_genre FROM genres WHERE genre_id = ?"
@@ -119,13 +130,6 @@ class GenresRepo(IGenresRepo):
             return True
         return False
     
-    def check_name_genre(self, name_genre: str) -> bool:
-        # проверка наличия жанра в базе по названию
-        query = "SELECT COUNT(*) FROM genres WHERE name_genre = ?"
-        res = self.db.get_int(query, name_genre)
-        if res == 1:
-            return True
-        return False
 
 class BooksRepo(IBooksRepo):
     ''' Cодержит методы для хранения и обработки данных о книгах '''
@@ -146,16 +150,32 @@ class BooksRepo(IBooksRepo):
         '''
         self.db.execute_query(query)
     
-    def add_book(self, title: str, author_id: int, genre_id: int) -> int:
-        query = "INSERT INTO books (title, author_id, genre_id) VALUES (?, ?, ?)"
-        self.db.execute_query(query, title, author_id, genre_id)
-        query = '''
-            SELECT book_id FROM books
-            WHERE title = ? AND
-            author_id = ? AND
-            genre_id = ?
-        '''
-        return self.db.get_int(query, title, author_id, genre_id)
+    def add_book(self, title: str, author_id: int, genre_id: int) -> int | None:
+        try:
+            query_a = "SELECT author_id FROM authors WHERE author_id = ?"
+            if author_id == self.db.get_int(query_a, author_id):
+                query_g = "SELECT genre_id FROM genres WHERE genre_id = ?"
+                if genre_id == self.db.get_int(query_g, genre_id):
+                    query_b = "SELECT title, author_id FROM books WHERE title = ? and author_id = ?"
+                    book_res = self.db.execute_get_data(query_b, title, author_id)
+                    book = [row for row in book_res]
+                    if book[0] != (title, author_id):
+                        query = "INSERT INTO books (title, author_id, genre_id) VALUES (?, ?, ?)"
+                        self.db.execute_query(query, title, author_id, genre_id)
+                        query = '''
+                            SELECT book_id FROM books
+                            WHERE title = ? AND
+                            author_id = ? AND
+                            genre_id = ?
+                        '''
+                        return self.db.get_int(query, title, author_id, genre_id)
+                    raise Exceptions("Книга с таким названием и автором уже есть в библиотеке")
+                raise Exceptions("Жанр не найден")
+            raise Exceptions("Автор не найден")
+        except Exceptions as e:
+            print(e)
+            return
+        
         
     def get_books(self) -> list[BookInfo]:
         query = '''
@@ -191,7 +211,7 @@ class BooksRepo(IBooksRepo):
         book: BookInfo = book_l[0]
         return book
     
-    def find_books(self, **filters: dict) -> list:
+    def find_books(self, param: str, value: str) -> list:
         # поиск книг по названию, автору или жанру
         query = '''
             SELECT book_id, title,
@@ -203,10 +223,8 @@ class BooksRepo(IBooksRepo):
             JOIN genres g ON b.genre_id = g.genre_id
             WHERE
         '''
-        key, value = next(iter(filters.items()))
-        query += f" {key} LIKE ?"        
-        param = f"%{value}%"
-        books = self.db.execute_get_data(query, param)
+        query += f" {param} LIKE ?"        
+        books = self.db.execute_get_data(query, value)
         books_list = [BookInfo(*row) for row in books]
         return books_list
     

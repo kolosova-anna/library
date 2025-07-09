@@ -17,7 +17,7 @@ class BookService:
     def get_books(self) -> list[BookInfo]:
         return self.uow.books_repo.get_books()
 
-    def add_book(self, title: str, author_id: int, genre_id: int) -> int:
+    def add_book(self, title: str, author_id: int, genre_id: int) -> int | None:
         return self.uow.books_repo.add_book(title, author_id, genre_id)
     
     def mark_as_read(self, book_id: int) -> None:
@@ -26,24 +26,17 @@ class BookService:
     def get_book_by_id(self, book_id: int) -> BookInfo:
         return self.uow.books_repo.get_book_by_id(book_id)
     
-    def find_books(self, **filters) -> list[BookInfo]:
+    def find_books(self, param: str, value: str) -> list[BookInfo]:
         # поиск книг по названию ,автору или жанру
-        if filters:
-            return self.uow.books_repo.find_books(**filters)
+        if param:
+            return self.uow.books_repo.find_books(param, value)
         else:
-            raise ValueError("Missing arguments for the function")
+            raise ValueError("Missing argument for the function")
     
     def check_book_id(self, book_id: int) -> bool:
         # проверка наличия книги в базе по переданному id
         return self.uow.books_repo.check_book_id(book_id)
-    
-    def check_new_book(self, title: str, author_id: int) -> bool:
-        books = self.find_books(title=title)
-        same_books = [b for b in books if b.author_id == author_id]
-        if same_books:
-            return True
-        return False
-    
+  
 
 class AuthorsService:
     ''' Методы для работы с авторами '''
@@ -51,7 +44,7 @@ class AuthorsService:
     def __init__(self, uow: UnitOfWork):
         self.uow = uow
 
-    def add_author(self, name_author: str) -> int:
+    def add_author(self, name_author: str) -> int | None:
         return self.uow.authors_repo.add_author(name_author)
     
     def get_author_by_id(self, author_id: int) -> Author:
@@ -64,17 +57,13 @@ class AuthorsService:
         # проверка наличия автора в базе по переданному id
         return self.uow.authors_repo.check_author_id(author_id)
     
-    def check_name_author(self, name_author: str) -> bool:
-        # проверка наличия автора по имени
-        return self.uow.authors_repo.check_name_author(name_author)
-
 
 class GenresService:
     ''' Методы для работы с жанрами '''
     def __init__(self, uow: UnitOfWork):
         self.uow = uow
 
-    def add_genre(self, name_genre: str) -> int:
+    def add_genre(self, name_genre: str) -> int | None:
         return self.uow.genres_repo.add_genre(name_genre)
     
     def get_genre_by_id(self, genre_id: int) -> Genre:
@@ -87,10 +76,6 @@ class GenresService:
         # проверка наличия жанра в базе по переданному id
         return self.uow.genres_repo.check_genre_id(genre_id)
     
-    def check_name_genre(self, name_genre: str) -> bool:
-        # проверка наличия жанра по названию
-        return self.uow.genres_repo.check_name_genre(name_genre)
-
 
 class Recomendations:    
     ''' Формирует список рекомендаций '''
@@ -118,3 +103,12 @@ class Recomendations:
             recomendations = unread_books
         
         return recomendations[:10]
+    
+
+class Exceptions(Exception):
+
+    def __init__(self, message):
+        self.message = message
+
+    def __str__(self):
+        return f'Ошибка: {self.message}'

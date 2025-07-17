@@ -18,7 +18,17 @@ class BookService:
         return self.uow.books_repo.get_books()
 
     def add_book(self, title: str, author_id: int, genre_id: int) -> int | None:
-        return self.uow.books_repo.add_book(title, author_id, genre_id)
+        try:
+            check_a_id = self.uow.authors_repo.check_author_id(author_id)
+            if check_a_id:
+                check_g_id = self.uow.genres_repo.check_genre_id(genre_id)
+                if check_g_id:
+                    return self.uow.books_repo.add_book(title, author_id, genre_id)
+                raise Exceptions("Жанр не найден")
+            raise Exceptions("Автор не найден")
+        except Exceptions as e:
+            print(e)
+            return 
     
     def mark_as_read(self, book_id: int) -> None:
         return self.uow.books_repo.mark_as_read(book_id)
@@ -45,7 +55,14 @@ class AuthorsService:
         self.uow = uow
 
     def add_author(self, name_author: str) -> int | None:
-        return self.uow.authors_repo.add_author(name_author)
+        try:
+            res = self.check_author_availibility(name_author)
+            if not res:
+                return self.uow.authors_repo.add_author(name_author)
+            raise Exceptions("Такой автор уже есть в списке")
+        except Exceptions as e:
+            print(e)
+            return
     
     def get_author_by_id(self, author_id: int) -> Author:
         return self.uow.authors_repo.get_author_by_id(author_id)
@@ -57,6 +74,9 @@ class AuthorsService:
         # проверка наличия автора в базе по переданному id
         return self.uow.authors_repo.check_author_id(author_id)
     
+    def check_author_availibility(self, name_author: str) -> bool:
+        return self.uow.authors_repo.check_author_availibility(name_author)
+    
 
 class GenresService:
     ''' Методы для работы с жанрами '''
@@ -64,7 +84,14 @@ class GenresService:
         self.uow = uow
 
     def add_genre(self, name_genre: str) -> int | None:
-        return self.uow.genres_repo.add_genre(name_genre)
+        try:
+            res = self.check_genre_availibility(name_genre)
+            if not res:
+                return self.uow.genres_repo.add_genre(name_genre)
+            raise Exceptions("Такой жанр уже есть в списке")
+        except Exceptions as e:
+            print(e)
+            return
     
     def get_genre_by_id(self, genre_id: int) -> Genre:
         return self.uow.genres_repo.get_genre_by_id(genre_id)
@@ -75,6 +102,9 @@ class GenresService:
     def check_genre_id(self, genre_id: int) -> bool:
         # проверка наличия жанра в базе по переданному id
         return self.uow.genres_repo.check_genre_id(genre_id)
+    
+    def check_genre_availibility(self, name_genre: str) -> bool:
+        return self.uow.genres_repo.check_genre_availibility(name_genre)
     
 
 class Recomendations:    

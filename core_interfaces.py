@@ -82,6 +82,10 @@ class IAuthorsRepo(ABC):
     def check_author_id(self, author_id: int) -> bool:
         pass
 
+    @abstractmethod
+    def check_author_availibility(self, name_author: str) -> bool:
+        pass
+
 
 class IGenresRepo(ABC):
     ''' Интерфейс для работы с жанрами '''
@@ -100,6 +104,10 @@ class IGenresRepo(ABC):
 
     @abstractmethod
     def check_genre_id(self, genre_id: int) -> bool:
+        pass
+
+    @abstractmethod
+    def check_genre_availibility(self, name_genre: str) -> bool:
         pass
 
     
